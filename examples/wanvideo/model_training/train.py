@@ -1,5 +1,10 @@
 import torch, os, argparse, accelerate, warnings
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 from diffsynth.core import UnifiedDataset
+
 from diffsynth.core.data.operators import LoadVideo, LoadAudio, ImageCropAndResize, ToAbsolutePath
 from diffsynth.pipelines.wan_video import WanVideoPipeline, ModelConfig
 from diffsynth.diffusion import *
@@ -63,15 +68,40 @@ class WanTrainingModule(DiffusionTrainingModule):
         self.min_timestep_boundary = min_timestep_boundary
         
     def parse_extra_inputs(self, data, extra_inputs, inputs_shared):
+        alias_map = {
+            "vace_video": ("depth_video",),
+            "vace_normal_video": ("normal_video",),
+            "vace_video_mask": ("mask_video", "mask"),
+            "vace_reference_image": ("reference_image",),
+        }
         for extra_input in extra_inputs:
             if extra_input == "input_image":
                 inputs_shared["input_image"] = data["video"][0]
+                continue
             elif extra_input == "end_image":
                 inputs_shared["end_image"] = data["video"][-1]
-            elif extra_input == "reference_image" or extra_input == "vace_reference_image":
-                inputs_shared[extra_input] = data[extra_input][0]
+                continue
+
+            data_key = None
+            if extra_input in data:
+                data_key = extra_input
             else:
-                inputs_shared[extra_input] = data[extra_input]
+                for alias in alias_map.get(extra_input, ()):
+                    if alias in data:
+                        data_key = alias
+                        break
+
+            if data_key is None:
+                available_keys = ", ".join(sorted(data.keys()))
+                raise KeyError(
+                    f"Missing extra input '{extra_input}'. Available keys: {available_keys}. "
+                    f"Please update --data_file_keys/metadata columns or add an alias in train.py."
+                )
+
+            if extra_input == "reference_image" or extra_input == "vace_reference_image":
+                inputs_shared[extra_input] = data[data_key][0]
+            else:
+                inputs_shared[extra_input] = data[data_key]
         return inputs_shared
     
     def get_pipeline_inputs(self, data):
