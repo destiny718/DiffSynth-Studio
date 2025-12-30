@@ -1,7 +1,7 @@
 accelerate launch examples/wanvideo/model_training/train.py \
   --dataset_base_path /data/tianqi \
   --dataset_metadata_path /data/tianqi/DiffSynth-Studio/dataset_metadata.csv \
-  --data_file_keys "video,vace_video,vace_normal_video,vace_video_mask" \
+  --data_file_keys "video,depth_video,normal_video,mask_video" \
   --height 1024 \
   --width 1024 \
   --num_frames 81 \
@@ -10,7 +10,7 @@ accelerate launch examples/wanvideo/model_training/train.py \
   --learning_rate 1e-4 \
   --num_epochs 5 \
   --remove_prefix_in_ckpt "pipe.vace." \
-  --output_path "./models/train/Wan2.1-VACE-1.3B_lora" \
+  --output_path "./models/train/Wan2.1-VACE-1.3B_DepthNormal_lora" \
   --lora_base_model "vace" \
   --lora_target_modules "q,k,v,o,ffn.0,ffn.2" \
   --lora_rank 32 \
