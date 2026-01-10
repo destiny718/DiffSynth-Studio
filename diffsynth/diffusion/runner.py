@@ -55,12 +55,13 @@ def launch_training_task(
                     loss = model(data)
                 global_step += 1
 
-                if writer is not None:
-                    if log_steps is not None and log_steps > 0 and global_step % log_steps == 0:
-                        loss_scalar = accelerator.gather(loss.detach()).float().mean().item()
+                if log_dir is not None and log_steps is not None and log_steps > 0 and global_step % log_steps == 0:
+                    loss_scalar = accelerator.gather(loss.detach()).float().mean().item()
+                    if writer is not None:
                         writer.add_scalar("train/loss", loss_scalar, global_step)
                         writer.add_scalar("train/lr", optimizer.param_groups[0]["lr"], global_step)
                         writer.add_scalar("train/epoch", epoch_id, global_step)
+                    if accelerator.is_local_main_process:
                         pbar.set_postfix(loss=f"{loss_scalar:.4f}")
                 accelerator.backward(loss)
                 optimizer.step()
