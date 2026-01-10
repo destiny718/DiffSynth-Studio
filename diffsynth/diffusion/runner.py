@@ -17,27 +17,51 @@ def launch_training_task(
     num_epochs: int = 1,
     args = None,
 ):
+    log_dir = None
+    log_steps = 10
     if args is not None:
         learning_rate = args.learning_rate
         weight_decay = args.weight_decay
         num_workers = args.dataset_num_workers
         save_steps = args.save_steps
         num_epochs = args.num_epochs
+        log_dir = args.log_dir if args.log_dir is not None else os.path.join(args.output_path, "runs")
+        log_steps = args.log_steps
     
     optimizer = torch.optim.AdamW(model.trainable_modules(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.ConstantLR(optimizer)
     dataloader = torch.utils.data.DataLoader(dataset, shuffle=True, collate_fn=lambda x: x[0], num_workers=num_workers)
     
     model, optimizer, dataloader, scheduler = accelerator.prepare(model, optimizer, dataloader, scheduler)
+
+    writer = None
+    if log_dir is not None and accelerator.is_main_process:
+        try:
+            from torch.utils.tensorboard import SummaryWriter
+            writer = SummaryWriter(log_dir=log_dir)
+        except Exception as e:
+            print(f"[TensorBoard] Disabled: failed to create SummaryWriter ({e}). Install with `pip install tensorboard`.")
+            writer = None
     
+    global_step = 0
     for epoch_id in range(num_epochs):
-        for data in tqdm(dataloader):
+        pbar = tqdm(dataloader, disable=not accelerator.is_local_main_process)
+        for data in pbar:
             with accelerator.accumulate(model):
                 optimizer.zero_grad()
                 if dataset.load_from_cache:
                     loss = model({}, inputs=data)
                 else:
                     loss = model(data)
+                global_step += 1
+
+                if writer is not None:
+                    if log_steps is not None and log_steps > 0 and global_step % log_steps == 0:
+                        loss_scalar = accelerator.gather(loss.detach()).float().mean().item()
+                        writer.add_scalar("train/loss", loss_scalar, global_step)
+                        writer.add_scalar("train/lr", optimizer.param_groups[0]["lr"], global_step)
+                        writer.add_scalar("train/epoch", epoch_id, global_step)
+                        pbar.set_postfix(loss=f"{loss_scalar:.4f}")
                 accelerator.backward(loss)
                 optimizer.step()
                 model_logger.on_step_end(accelerator, model, save_steps)
@@ -45,6 +69,10 @@ def launch_training_task(
         if save_steps is None:
             model_logger.on_epoch_end(accelerator, model, epoch_id)
     model_logger.on_training_end(accelerator, model, save_steps)
+
+    if writer is not None:
+        writer.flush()
+        writer.close()
 
 
 def launch_data_process_task(

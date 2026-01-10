@@ -10,7 +10,8 @@ accelerate launch examples/wanvideo/model_training/train.py \
   --learning_rate 1e-4 \
   --num_epochs 5 \
   --remove_prefix_in_ckpt "pipe.vace." \
-  --output_path "./models/train/Wan2.1-VACE-1.3B_DepthNormal_lora" \
+  --output_path "output" \
+  --log_steps 5 \
   --lora_base_model "vace" \
   --lora_target_modules "q,k,v,o,ffn.0,ffn.2" \
   --lora_rank 32 \

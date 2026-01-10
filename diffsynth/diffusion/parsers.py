@@ -43,6 +43,8 @@ def add_output_config(parser: argparse.ArgumentParser):
     parser.add_argument("--output_path", type=str, default="./models", help="Output save path.")
     parser.add_argument("--remove_prefix_in_ckpt", type=str, default="pipe.dit.", help="Remove prefix in ckpt.")
     parser.add_argument("--save_steps", type=int, default=None, help="Number of checkpoint saving invervals. If None, checkpoints will be saved every epoch.")
+    parser.add_argument("--log_dir", type=str, default=None, help="TensorBoard log dir. If None, uses {output_path}/runs.")
+    parser.add_argument("--log_steps", type=int, default=10, help="TensorBoard logging interval (steps).")
     return parser
 
 def add_lora_config(parser: argparse.ArgumentParser):
