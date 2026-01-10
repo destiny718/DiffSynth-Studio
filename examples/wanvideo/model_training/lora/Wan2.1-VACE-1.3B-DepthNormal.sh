@@ -1,7 +1,7 @@
 accelerate launch examples/wanvideo/model_training/train.py \
   --dataset_base_path /data/tianqi \
   --dataset_metadata_path /data/tianqi/DiffSynth-Studio/dataset_metadata.csv \
-  --data_file_keys "video,depth_video,normal_video,mask_video" \
+  --data_file_keys "video,position_video,normal_video,mask_video" \
   --height 1024 \
   --width 1024 \
   --num_frames 81 \

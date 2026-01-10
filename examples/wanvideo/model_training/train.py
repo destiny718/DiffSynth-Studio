@@ -69,7 +69,7 @@ class WanTrainingModule(DiffusionTrainingModule):
         
     def parse_extra_inputs(self, data, extra_inputs, inputs_shared):
         alias_map = {
-            "vace_video": ("depth_video",),
+            "vace_video": ("depth_video", "position_video"),
             "vace_normal_video": ("normal_video",),
             "vace_video_mask": ("mask_video", "mask"),
             "vace_reference_image": ("reference_image",),
