@@ -19,6 +19,7 @@ accelerate launch examples/wanvideo/model_training/train.py \
   --num_epochs 5 \
   --remove_prefix_in_ckpt "pipe.vace." \
   --output_path "./models/train/Wan2.2-VACE-Fun-A14B_high_noise_lora_depth_normal" \
+  --save_steps 1000 \
   --lora_base_model "vace" \
   --lora_target_modules "q,k,v,o,ffn.0,ffn.2" \
   --lora_rank 32 \
@@ -41,6 +42,7 @@ accelerate launch examples/wanvideo/model_training/train.py \
   --num_epochs 5 \
   --remove_prefix_in_ckpt "pipe.vace." \
   --output_path "./models/train/Wan2.2-VACE-Fun-A14B_low_noise_lora_depth_normal" \
+  --save_steps 1000 \
   --lora_base_model "vace" \
   --lora_target_modules "q,k,v,o,ffn.0,ffn.2" \
   --lora_rank 32 \

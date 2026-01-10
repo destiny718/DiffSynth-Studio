@@ -5,13 +5,14 @@ accelerate launch examples/wanvideo/model_training/train.py \
   --height 1024 \
   --width 1024 \
   --num_frames 81 \
-  --dataset_repeat 100 \
+  --dataset_repeat 1 \
   --model_id_with_origin_paths "Wan-AI/Wan2.1-VACE-1.3B:diffusion_pytorch_model*.safetensors,Wan-AI/Wan2.1-VACE-1.3B:models_t5_umt5-xxl-enc-bf16.pth,Wan-AI/Wan2.1-VACE-1.3B:Wan2.1_VAE.pth" \
   --learning_rate 1e-4 \
   --num_epochs 5 \
   --remove_prefix_in_ckpt "pipe.vace." \
   --output_path "output" \
-  --log_steps 5 \
+  --log_steps 1 \
+  --save_steps 1000 \
   --lora_base_model "vace" \
   --lora_target_modules "q,k,v,o,ffn.0,ffn.2" \
   --lora_rank 32 \
